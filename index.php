@@ -1,14 +1,50 @@
 <?php
-
+session_start();
 $HOST = 'http://localhost:8080/flight_route/';
-$i = 1;
-$data = file_get_contents('data/data.json');
-$flights = json_decode($data);
+$NUM = 1;
+$DATA = file_get_contents('data/data.json');
+$AIRPORT_LIST = file_get_contents('data/airport.json');
 
-$airport_list = file_get_contents('data/airport.json');
-$airports = json_decode($airport_list);
+$Flights = json_decode($DATA);
 
-var_dump($_POST)
+$Airports = json_decode($AIRPORT_LIST);
+
+var_dump($_POST);
+var_dump($_SESSION['notif']);
+
+function add_data($Flights, $Airports, $newData) {
+
+  $orNum = $newData['origin'];
+  $desNum = $newData['destination'];
+
+  $orTax = $Airports[0][$orNum][1];
+  $desTax = $Airports[1][$desNum][1];
+  $sumTax = $orTax + $desTax;
+
+  $totalPrice = $newData['price'] + $sumTax;
+
+  $flight_data = $Flights;
+
+  $flight_data[] = [
+    $newData['airlines'],
+    $Airports[0][$orNum][0],
+    $Airports[1][$desNum][0],
+    $newData['price'],
+    $sumTax,
+    $totalPrice
+  ];
+
+  $data = json_encode($flight_data);
+
+  file_put_contents('data/data.json', $data);
+
+}
+
+if (isset($_POST['submit'])) {
+ 
+  add_data($Flights, $Airports, $_POST);
+  $_SESSION['notif'] = 'Data Berhasil Ditambahkan';
+}
 ?>
 
 
@@ -48,9 +84,9 @@ var_dump($_POST)
     <div class="row justify-content-center">
       <div class="col">
         <h3 class="my-3">Daftar Rute Tersedia</h3>
-    <button type="button" class="btn btn-danger badge-pill my-3" data-toggle="modal" data-target="#staticBackdrop"> 
-Tambah Rute
-    </button> 
+        <button type="button" class="btn btn-danger badge-pill my-3" data-toggle="modal" data-target="#staticBackdrop">
+          Tambah Rute
+        </button>
 
         <table class="table table-striped rounded">
           <thead class="thead-dark">
@@ -60,13 +96,13 @@ Tambah Rute
             <th>Tujuan Penerbangan</th>
             <th>Harga Tiket</th>
             <th>Pajak</th>
-            <th>Total Harga Pajak</th>
+            <th>Total Harga Tiket</th>
           </thead>
           <tbody>
-            <?php 
-            foreach ($flights as $flight): ?>
+            <?php
+            foreach ($Flights as $flight): ?>
             <tr>
-              <td><?= $i++; ?></td>
+              <td><?= $NUM++; ?></td>
               <td><?= $flight[0]; ?></td>
               <td><?= $flight[1]; ?></td>
               <td><?= $flight[2]; ?></td>
@@ -79,61 +115,64 @@ Tambah Rute
         </table>
       </div>
     </div>
-    
-    <!-- Form Rute Penerbangan --> 
+
+    <!-- Form Rute Penerbangan -->
     <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered rounded">
         <div class="modal-content rounded">
           <div class="modal-header">
             <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
-            <span aria-hidden="true">&times;</span> </button>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span> </button>
           </div>
-          
+
           <div class="modal-body">
-          <form action="index.php" method="post">
-            <div class="form-group">
-              <label for="airlines">Maskapai</label>
-              <input class="form-control" id="airlines" name="airlines">
-            </div>
+            <form action="index.php" method="post">
+              <div class="form-group">
+                <label for="airlines">Maskapai</label>
+                <input class="form-control" id="airlines" name="airlines">
+              </div>
 
-            <div class="form-group">
-              <label for="origin">Asal Penerbangan</label>
-              <select class="form-control" id="origin" name="origin">
-                <?php 
-                foreach ($airports[0] as $origin): ?>
-                <option value="<?= $origin[0]; ?>"><?= $origin[0]; ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
+              <div class="form-group">
+                <label for="origin">Asal Penerbangan</label>
+                <select class="form-control" id="origin" name="origin">
+                  <?php
+                  $orNum = 0;
+                  foreach ($Airports[0] as $origin): ?>
+                  <option value="<?= $orNum++; ?>"><?= $origin[0]; ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
 
-            <div class="form-group">
-              <label for="destination">Tujuan Penerbangan</label>
-              <select class="form-control" id="destination" name="destination">
-                <?php foreach ($airports[1] as $destination): ?>
-                <option value="<?= $destination[0]; ?>"><?= $destination[0]; ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
+              <div class="form-group">
+                <label for="destination">Tujuan Penerbangan</label>
+                <select class="form-control" id="destination" name="destination">
+                  <?php
+                  $desNum = 0;
+                  foreach ($Airports[1] as $destination): ?>
+                  <option value="<?= $desNum++; ?>"><?= $destination[0]; ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
 
-            <div class="form-group">
-              <label for="price">Harga Tiket</label>
-              <input class="form-control" id="price">
+              <div class="form-group">
+                <label for="price">Harga Tiket</label>
+                <input type="number" class="form-control" id="price" name="price">
+              </div>
             </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-dark badge-pill" data-dismiss="modal">Cancle</button>
-          <button type="submit" class="btn btn-danger badge-pill">Save</button>
-        </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-dark badge-pill" data-dismiss="modal">Cancle</button>
+              <button type="submit" class="btn btn-danger badge-pill" name="submit">Save</button>
+            </div>
           </form>
-           
+
+        </div>
       </div>
     </div>
-  </div>
 
 
-  <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
-  <script src="<?= $HOST; ?>library/js/jquery_3.6.0.js"></script>
-  <script src="<?= $HOST; ?>library/js/bootstrap.bundle.min.js"></script>
-</body>
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="<?= $HOST; ?>library/js/jquery_3.6.0.js"></script>
+    <script src="<?= $HOST; ?>library/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>
