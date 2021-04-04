@@ -15,3 +15,28 @@ Aplikasi Pendaftaran rute penerbangan dengan bandara yang ada di Indonesia, Dapa
 ## Credits
 - Created by [ricky03knohwere](https://ricky03knowhere.github.io)
 - Template by [Bootstap 4](https://getbootstrap.com/)
+
+
+## File Structure
+
+```
+flight_route/
+├── index.php
+├── bandara.php
+├── const.php
+├── save.php
+├── README.md
+├── library/
+│   ├── css/
+│   │    └── bootstrap.min.css
+│   └── js/
+│         ├── bootstrap.bundle.min.js
+│         └── jquery_3.6.0.js
+├── data/
+│    ├── data.json
+│    └── airport.json
+└── gambar/
+      └── icon.png
+
+
+```
