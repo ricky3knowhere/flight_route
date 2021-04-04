@@ -1,59 +1,18 @@
 <?php
+require('const.php');
 session_start();
-$HOST = 'http://localhost:8080/flight_route/';
-$NUM = 1;
-$DATA = file_get_contents('data/data.json');
-$AIRPORT_LIST = file_get_contents('data/airport.json');
 
-$Flights = json_decode($DATA);
-
-$Airports = json_decode($AIRPORT_LIST);
-
-var_dump($_POST);
-var_dump($_SESSION['notif']);
-
-function add_data($Flights, $Airports, $newData) {
-
-  $orNum = $newData['origin'];
-  $desNum = $newData['destination'];
-
-  $orTax = $Airports[0][$orNum][1];
-  $desTax = $Airports[1][$desNum][1];
-  $sumTax = $orTax + $desTax;
-
-  $totalPrice = $newData['price'] + $sumTax;
-
-  $flight_data = $Flights;
-
-  $flight_data[] = [
-    $newData['airlines'],
-    $Airports[0][$orNum][0],
-    $Airports[1][$desNum][0],
-    $newData['price'],
-    $sumTax,
-    $totalPrice
-  ];
-
-  $data = json_encode($flight_data);
-
-  file_put_contents('data/data.json', $data);
-
-}
-
-if (isset($_POST['submit'])) {
- 
-  add_data($Flights, $Airports, $_POST);
-  $_SESSION['notif'] = 'Data Berhasil Ditambahkan';
-}
 ?>
-
-
 <!doctype html>
 <html lang="en">
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <!-- Favicon -->
+  <link rel="shortcut icon" href="<?= $HOST; ?>gambar/icon.png" type="image/x-icon" />
+
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="<?= $HOST; ?>library/css/bootstrap.min.css">
   <title>Penerbangan App</title>
@@ -62,19 +21,16 @@ if (isset($_POST['submit'])) {
   <nav class="navbar navbar-expand-md navbar-dark bg-danger">
     <div class="container">
 
-      <a class="navbar-brand" href="#">Navbar</a>
+      <a class="navbar-brand" href="#">Flight Route</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button> <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item active">
-            <a class="nav-link" href="#">Home</a>
+            <a class="nav-link" href="<?= $HOST; ?>">Daftar Rute</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Rute</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Maskapai</a>
+            <a class="nav-link" href="<?= $HOST; ?>bandara.php">Daftar Bandara</a>
           </li>
         </ul>
       </div>
@@ -87,9 +43,27 @@ if (isset($_POST['submit'])) {
         <button type="button" class="btn btn-danger badge-pill my-3" data-toggle="modal" data-target="#staticBackdrop">
           Tambah Rute
         </button>
+        
+        <?php if (isset($_SESSION['notif'])) : ?>
+        <div class="row">
+          <div class="col-md-5">
+            
+        <div class="alert alert-success">
+          Data berhasil ditambahkan...
+        </div>
+          </div>
+        </div>
+      
+        <?php 
+        session_unset();
+        endif; ?>
+        
+          <div class="table-responsive">      
 
-        <table class="table table-striped rounded">
-          <thead class="thead-dark">
+        <table class="table table-striped">
+          <thead class="thead-dark" >
+            <tr>
+             
             <th>No.</th>
             <th>Maskapai</th>
             <th>Asal Penerbangan</th>
@@ -97,22 +71,25 @@ if (isset($_POST['submit'])) {
             <th>Harga Tiket</th>
             <th>Pajak</th>
             <th>Total Harga Tiket</th>
+           </tr>
           </thead>
           <tbody>
             <?php
+            $i = 1;
             foreach ($Flights as $flight): ?>
             <tr>
-              <td><?= $NUM++; ?></td>
+              <td><?= $i++; ?></td>
               <td><?= $flight[0]; ?></td>
               <td><?= $flight[1]; ?></td>
               <td><?= $flight[2]; ?></td>
-              <td><?= $flight[3]; ?></td>
-              <td><?= $flight[4]; ?></td>
-              <td><?= $flight[5]; ?></td>
+              <td>Rp. <?= $flight[3]; ?></td>
+              <td>Rp. <?= $flight[4]; ?></td>
+              <td>Rp. <?= $flight[5]; ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 
@@ -121,16 +98,16 @@ if (isset($_POST['submit'])) {
       <div class="modal-dialog modal-dialog-centered rounded">
         <div class="modal-content rounded">
           <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+            <h5 class="modal-title" id="staticBackdropLabel">Form Tambah Rute</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span> </button>
           </div>
 
           <div class="modal-body">
-            <form action="index.php" method="post">
+            <form action="save.php" method="post">
               <div class="form-group">
                 <label for="airlines">Maskapai</label>
-                <input class="form-control" id="airlines" name="airlines">
+                <input class="form-control" id="airlines" name="airlines" required>
               </div>
 
               <div class="form-group">
@@ -157,7 +134,7 @@ if (isset($_POST['submit'])) {
 
               <div class="form-group">
                 <label for="price">Harga Tiket</label>
-                <input type="number" class="form-control" id="price" name="price">
+                <input type="number" class="form-control" id="price" name="price" required>
               </div>
             </div>
             <div class="modal-footer">
@@ -169,10 +146,13 @@ if (isset($_POST['submit'])) {
         </div>
       </div>
     </div>
-
+    
+  </div>
+</div>
 
     <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
     <script src="<?= $HOST; ?>library/js/jquery_3.6.0.js"></script>
     <script src="<?= $HOST; ?>library/js/bootstrap.bundle.min.js"></script>
+ 
   </body>
 </html>
